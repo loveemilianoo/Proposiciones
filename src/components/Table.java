@@ -38,14 +38,14 @@ public class Table extends JFrame {
 
         for (int i = 0; i < values.length; i++) {
             for (int j = 0; j < headers.length; j++) {
-                content[i][j] = values[i][j] ? "F" : "V";
+                content[i][j] = values[i][j] ? "V" : "F";
             }
             java.util.Map <String, Boolean> vars= new java.util.HashMap<>();
             for (int k=0; k< headers.length; k++){
                 vars.put(headers[k], values[i][k]);
             }
             boolean res= LogicEval.eval(operacion, vars);
-            content[i][headers.length] = res ? "F" : "V";
+            content[i][headers.length] = res ? "V" : "F";
         }
         
         JTable jTable = new JTable(content, newHeaders) {

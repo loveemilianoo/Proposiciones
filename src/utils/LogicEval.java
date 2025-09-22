@@ -1,8 +1,6 @@
 package utils;
 import java.util.Map;
 
-import javax.management.RuntimeErrorException;
-
 public class LogicEval {
     public static boolean eval(String expression, Map<String, Boolean> variables){
         String expr = expression;
@@ -23,12 +21,8 @@ public class LogicEval {
     
     private static boolean evalExpr(String expr){
         expr = expr.trim();
-        while (expr.startsWith("(") && expr.endsWith(")") && matchingParentheses(expr)) {
+        while (expr.startsWith("(") && expr.endsWith(")") && outParent(expr)) {
             expr = expr.substring(1, expr.length() - 1).trim();
-        }
-
-        if (expr.startsWith("!")){
-            return !evalExpr(expr.substring(1).trim());
         }
 
         int parenCount=0;
@@ -36,12 +30,10 @@ public class LogicEval {
             char c= expr.charAt(i);
             if (c==')') parenCount++;
             if (c=='(') parenCount--;
-            if (parenCount==0 && i>0){
-                if (c == '|' && expr.charAt(i-1) == '|'){
-                    String left = expr.substring(0, i-1).trim();
-                    String rigth= expr.substring(i+1).trim();
-                    return evalExpr(left) || evalExpr(rigth);
-                }
+            if (parenCount==0 && i>0 && expr.charAt(i) == '|' && expr.charAt(i-1)== '|'){
+                String left = expr.substring(0, i-1).trim();
+                String rigth= expr.substring(i+1).trim();
+                return evalExpr(left) || evalExpr(rigth);
             }
         }
 
@@ -49,13 +41,15 @@ public class LogicEval {
             char c= expr.charAt(i);
             if (c==')') parenCount++;
             if (c=='(') parenCount--;
-            if (parenCount==0 && i>0){
-                if (c == '&' && expr.charAt(i-1) == '&'){
-                    String left = expr.substring(0, i-1).trim();
-                    String rigth= expr.substring(i+1).trim();
-                    return evalExpr(left) || evalExpr(rigth);
-                }
+            if (parenCount==0 && i>0 && expr.charAt(i) == '&' && expr.charAt(i-1)== '&'){
+                String left = expr.substring(0, i-1).trim();
+                String rigth= expr.substring(i+1).trim();
+                return evalExpr(left) && evalExpr(rigth);
             }
+        }
+        
+        if (expr.startsWith("!")){
+            return !evalExpr(expr.substring(1));
         }
 
         if (expr.equals("true")) return true;
@@ -63,12 +57,14 @@ public class LogicEval {
         throw new RuntimeException("Expresión inválida: " + expr);
     }
 
-    private static boolean matchingParentheses(String expr){
+    private static boolean outParent(String expr){
+        if (!expr.startsWith("(") || !expr.endsWith(")")) return false;
         int count=0;
         for (int i =0; i< expr.length();i++){
-            if (expr.charAt(i)== '(') count++;
-            if (expr.charAt(i)== ')') count--;
-            if (count <0) return false;
+            char c = expr.charAt(i);
+            if (c== '(') count++;
+            if (c== ')') count--;
+            if (count == 0 && i< expr.length()-1) return false;
         }
         return count == 0;
     }
